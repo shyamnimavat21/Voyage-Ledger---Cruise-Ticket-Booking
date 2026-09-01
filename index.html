@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voyage Ledger — Cruise Ticket Booking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#061523;
+    --navy:#0B2A44;
+    --navy-mid:#123a5c;
+    --gold:#C9A24B;
+    --gold-light:#E4C877;
+    --coral:#E2663C;
+    --foam:#EFE9DC;
+    --foam-dim:#D9D2C0;
+    --ink:#081420;
+    --line: rgba(239,233,220,0.18);
+    --radius: 4px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--navy-deep);
+    color:var(--foam);
+    font-family:'Manrope', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    margin:0;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace; letter-spacing:0.04em;}
+  a{color:inherit; text-decoration:none;}
+  img{display:block; max-width:100%;}
+  .wrap{max-width:1240px; margin:0 auto; padding:0 32px;}
+  ::selection{background:var(--coral); color:var(--foam);}
+
+  /* reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  /* ---------- NAV ---------- */
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:linear-gradient(to bottom, rgba(6,21,35,0.92), rgba(6,21,35,0));
+    padding:22px 0 40px;
+  }
+  nav.wrap{display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:10px; font-family:'Fraunces',serif; font-size:1.25rem; font-weight:600; letter-spacing:0.01em;}
+  .brand .ticket-hole{width:9px;height:9px;border-radius:50%;background:var(--gold); box-shadow:0 0 0 3px rgba(201,162,75,0.2);}
+  .nav-links{display:flex; gap:36px; align-items:center; font-size:0.92rem; font-weight:500;}
+  .nav-links a{opacity:0.82; transition:opacity .2s; position:relative;}
+  .nav-links a:hover{opacity:1;}
+  .nav-cta{
+    border:1px solid var(--gold); color:var(--gold-light);
+    padding:10px 20px; border-radius:2px; font-size:0.85rem; font-weight:600;
+    letter-spacing:0.03em; transition:all .25s;
+  }
+  .nav-cta:hover{background:var(--gold); color:var(--navy-deep);}
+  .nav-toggle{display:none;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    display:flex; align-items:center;
+    padding-top:110px;
+    overflow:hidden;
+  }
+  .hero-bg{
+    position:absolute; inset:0; z-index:0;
+  }
+  .hero-bg img{
+    width:100%; height:100%; object-fit:cover;
+    filter:saturate(0.85) brightness(0.55);
+    transform:scale(1.08);
+  }
+  .hero-bg::after{
+    content:"";
+    position:absolute; inset:0;
+    background:
+      linear-gradient(180deg, rgba(6,17,28,0.55) 0%, rgba(6,17,28,0.35) 35%, var(--navy-deep) 96%),
+      linear-gradient(100deg, rgba(6,17,28,0.9) 10%, rgba(6,17,28,0.15) 55%);
+  }
+  .wave-layer{
+    position:absolute; left:0; width:200%; bottom:-2px; z-index:1; opacity:0.5;
+  }
+  .wave1{animation: drift 22s linear infinite;}
+  .wave2{animation: drift 34s linear infinite reverse; opacity:0.28;}
+  @keyframes drift{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+
+  .hero-grid{
+    position:relative; z-index:2;
+    display:grid; grid-template-columns:1.05fr 0.95fr; gap:40px; align-items:center;
+    width:100%;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:'IBM Plex Mono', monospace; font-size:0.72rem; letter-spacing:0.18em; text-transform:uppercase;
+    color:var(--gold-light); margin-bottom:22px;
+  }
+  .eyebrow::before{content:""; width:26px; height:1px; background:var(--gold-light);}
+  .hero h1{
+    font-size:clamp(2.4rem, 4.6vw, 4.1rem);
+    line-height:1.04;
+    color:var(--foam);
+  }
+  .hero h1 em{font-style:italic; color:var(--gold-light); font-weight:500;}
+  .hero p.lead{
+    max-width:480px; margin-top:22px; font-size:1.05rem; line-height:1.6; color:rgba(239,233,220,0.78);
+  }
+  .hero-actions{display:flex; gap:16px; margin-top:34px; align-items:center;}
+  .btn-primary{
+    background:var(--coral); color:var(--navy-deep); font-weight:700;
+    padding:15px 28px; border-radius:2px; font-size:0.95rem;
+    box-shadow:0 10px 30px -10px rgba(226,102,60,0.6);
+    transition:transform .2s ease;
+    display:inline-block;
+  }
+  .btn-primary:hover{transform:translateY(-2px);}
+  .link-ghost{font-size:0.92rem; font-weight:600; color:var(--foam); border-bottom:1px solid var(--line); padding-bottom:3px;}
+
+  /* ---------- MINI BOAT CONTAINER ---------- */
+  .hero-stats{
+    margin-top:52px; 
+    padding-top:26px; 
+    border-top:1px solid var(--line);
+    position:relative;
+    width:100%;
+    max-width:480px;
+  }
+  .mini-sea-lane {
+    width:100%;
+    height:24px;
+    border-bottom:1px dashed rgba(239,233,220,0.25);
+    position:relative;
+    overflow:hidden;
+  }
+  .mini-boat {
+    position:absolute;
+    bottom:-2px;
+    font-size:1.3rem;
+    animation: cruise-across 12s linear infinite;
+  }
+  .mini-sea-lane-label {
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.68rem;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    opacity:0.5;
+    margin-top:6px;
+    display:block;
+  }
+  @keyframes cruise-across {
+    0% { left: -30px; transform: scaleX(1); }
+    49% { left: 100%; transform: scaleX(1); }
+    50% { left: 100%; transform: scaleX(-1); }
+    99% { left: -30px; transform: scaleX(-1); }
+    100% { left: -30px; transform: scaleX(1); }
+  }
+
+  /* ---------- 3D TICKET ---------- */
+  .ticket-stage{
+    perspective:1400px;
+    display:flex; justify-content:center; align-items:center;
+    min-height:420px;
+  }
+  .ticket{
+    position:relative;
+    width:390px; max-width:90vw;
+    background:linear-gradient(155deg, #F6F1E4, #E9E1CC 60%, #DFD5B9);
+    border-radius:10px;
+    color:var(--ink);
+    transform-style:preserve-3d;
+    transform:rotateX(8deg) rotateY(-14deg);
+    box-shadow: 0 40px 80px -20px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.06);
+    transition:transform 0.15s ease-out;
+    will-change:transform;
+    animation: ticket-enter 1.1s cubic-bezier(.2,.8,.25,1) both, ticket-idle 6s ease-in-out 1.1s infinite;
+    cursor: pointer;
+  }
+  @keyframes ticket-enter{
+    from{ opacity:0; transform:rotateX(30deg) rotateY(-50deg) translateY(60px) scale(.9); }
+    to{ opacity:1; transform:rotateX(8deg) rotateY(-14deg) translateY(0) scale(1); }
+  }
+  @keyframes ticket-idle{
+    0%,100%{ transform:rotateX(8deg) rotateY(-14deg) translateY(0px); }
+    50%{ transform:rotateX(6deg) rotateY(-11deg) translateY(-10px); }
+  }
+  .ticket-top{
+    padding:26px 26px 20px;
+    border-bottom:2px dashed rgba(8,20,32,0.25);
+    position:relative;
+  }
+  .ticket-top::before, .ticket-top::after{
+    content:""; position:absolute; bottom:-11px; width:22px; height:22px; border-radius:50%;
+    background:var(--navy-deep);
+  }
+  .ticket-top::before{left:-11px;}
+  .ticket-top::after{right:-11px;}
+  .ticket-brand{display:flex; justify-content:space-between; align-items:flex-start;}
+  .ticket-brand .name{font-family:'Fraunces',serif; font-weight:600; font-size:1.05rem;}
+  .ticket-brand .class{font-family:'IBM Plex Mono',monospace; font-size:0.65rem; letter-spacing:0.1em; background:var(--gold); color:var(--navy-deep); padding:4px 8px; border-radius:2px;}
+  .ticket-route{display:flex; align-items:center; gap:14px; margin-top:22px;}
+  .ticket-route .port .code{font-family:'Fraunces',serif; font-size:2.1rem; font-weight:600; line-height:1;}
+  .ticket-route .port .city{font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; opacity:0.6; margin-top:4px;}
+  .ticket-route .path{flex:1; height:1px; background:repeating-linear-gradient(to right, rgba(8,20,32,0.4) 0 6px, transparent 6px 11px); position:relative;}
+  .ticket-route .path::after{content:"\01F6A2"; position:absolute; top:-11px; left:50%; transform:translateX(-50%); font-size:0.9rem;}
+  .ticket-bottom{padding:20px 26px 26px; display:grid; grid-template-columns:1fr 1fr; gap:16px 10px;}
+  .ticket-field .k{font-size:0.62rem; text-transform:uppercase; letter-spacing:0.09em; opacity:0.55;}
+  .ticket-field .v{font-family:'IBM Plex Mono',monospace; font-size:0.86rem; margin-top:3px;}
+  .ticket-barcode{
+    grid-column:1 / -1; margin-top:6px; height:34px;
+    background:repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 5px, var(--ink) 5px 6px, transparent 6px 10px);
+    opacity:0.75;
+  }
+
+  /* ---------- SECTION SHELL ---------- */
+  section{position:relative; padding:110px 0;}
+  .section-head{max-width:600px; margin-bottom:56px;}
+  .section-head .eyebrow{color:var(--gold-light);}
+  .section-head h2{font-size:clamp(1.9rem,3vw,2.6rem); color:var(--foam);}
+  .section-head p{margin-top:14px; color:rgba(239,233,220,0.68); line-height:1.6; font-size:1.02rem;}
+
+  /* ---------- BOOKING BAR ---------- */
+  .booking{
+    position:relative; z-index:5; margin-top:-86px;
+  }
+  .booking-card{
+    background:var(--foam); color:var(--ink);
+    border-radius:6px; padding:8px;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.55);
+  }
+  .trip-toggle{display:flex; gap:2px; padding:8px 8px 0;}
+  .trip-toggle button{
+    flex:1; padding:12px; border:none; background:transparent; cursor:pointer;
+    font-family:'IBM Plex Mono',monospace; font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase;
+    color:rgba(8,20,32,0.55); border-bottom:2px solid transparent;
+  }
+  .trip-toggle button.active{color:var(--ink); border-color:var(--coral); font-weight:600;}
+  .booking-fields{
+    display:grid; grid-template-columns:1.2fr 1.2fr 1fr 0.8fr auto; gap:0;
+    align-items:stretch;
+    padding:6px;
+  }
+  .field{padding:14px 20px; border-right:1px solid rgba(8,20,32,0.1);}
+  .field:last-of-type{border-right:none;}
+  .field .k{font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em; opacity:0.55; font-weight:700;}
+  .field select, .field input{
+    border:none; background:transparent; font:inherit; font-family:'Manrope',sans-serif;
+    font-size:0.98rem; font-weight:600; color:var(--ink); width:100%; margin-top:4px; padding:0;
+  }
+  .field select:focus, .field input:focus{outline:none;}
+  .search-btn{
+    background:var(--navy-deep); color:var(--foam); border:none; cursor:pointer;
+    padding:0 34px; font-weight:700; font-size:0.92rem; border-radius:3px;
+    display:flex; align-items:center; gap:8px; transition:background .2s;
+  }
+  .search-btn:hover{background:var(--coral); color:var(--navy-deep);}
+
+  /* ---------- ROUTE MAP STRIP ---------- */
+  .route-strip{padding:130px 0 80px;}
+  .route-line-wrap{position:relative; height:120px; margin-top:60px;}
+  .route-svg{width:100%; height:100%;}
+  .route-ship{ offset-path:path('M 20 60 C 260 10, 520 110, 780 50 S 1180 60, 1210 60'); animation:sail 14s linear infinite; }
+  @keyframes sail{ from{offset-distance:0%;} to{offset-distance:100%;} }
+  .route-labels{display:flex; justify-content:space-between; margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.07em; opacity:0.6;}
+
+  /* ---------- DESTINATIONS ---------- */
+  .dest-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:26px;}
+  .dest-card{
+    position:relative; border-radius:6px; overflow:hidden; height:340px;
+    perspective:800px;
+    cursor: pointer;
+  }
+  .dest-card .tilt{
+    position:relative; width:100%; height:100%; transition:transform .35s ease; transform-style:preserve-3d;
+  }
+  .dest-card:hover .tilt{transform:rotateX(4deg) rotateY(-4deg) scale(1.03);}
+  .dest-card img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
+  .dest-card .shade{position:absolute; inset:0; background:linear-gradient(180deg, rgba(6,17,28,0) 35%, rgba(6,17,28,0.92) 100%);}
+  .dest-tag{
+    position:absolute; top:16px; left:16px; font-family:'IBM Plex Mono',monospace; font-size:0.66rem;
+    letter-spacing:0.08em; text-transform:uppercase; background:rgba(9,21,35,0.65); backdrop-filter:blur(4px);
+    padding:6px 10px; border-radius:2px; border:1px solid rgba(239,233,220,0.25);
+  }
+  .dest-tag.intl{color:var(--gold-light);}
+  .dest-tag.dom{color:#9fd7c7;}
+  .dest-info{position:absolute; left:20px; right:20px; bottom:18px;}
+  .dest-info h3{font-size:1.25rem; color:var(--foam);}
+  .dest-info .meta{display:flex; justify-content:space-between; margin-top:8px; font-size:0.8rem; color:rgba(239,233,220,0.75);}
+  .dest-info .price{font-family:'IBM Plex Mono',monospace; color:var(--gold-light); font-weight:600;}
+
+  /* ---------- FEATURES ---------- */
+  .features{background:var(--navy); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .feat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line);}
+  .feat{background:var(--navy); padding:38px 30px;}
+  .feat .idx{font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:var(--gold-light); opacity:0.8;}
+  .feat h3{font-size:1.1rem; margin-top:16px; color:var(--foam);}
+  .feat p{margin-top:10px; font-size:0.9rem; line-height:1.55; color:rgba(239,233,220,0.65);}
+
+  /* ---------- CTA BAND ---------- */
+  .cta-band{
+    text-align:center; padding:120px 0;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(226,102,60,0.18), transparent 60%),
+      var(--navy-deep);
+  }
+  .cta-band h2{font-size:clamp(2rem,4vw,3.1rem); max-width:640px; margin:0 auto; color:var(--foam);}
+  .cta-band p{margin:18px auto 34px; max-width:460px; color:rgba(239,233,220,0.68);}
+
+  /* ---------- DATABASE LEDGER TABLE ---------- */
+  .ledger-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--navy);
+    margin-top: 30px;
+  }
+  .ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.88rem;
+  }
+  .ledger-table th {
+    background: rgba(239, 233, 220, 0.04);
+    color: var(--gold-light);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ledger-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+    color: rgba(239, 233, 220, 0.85);
+    vertical-align: middle;
+  }
+  .ledger-table tr:last-child td {
+    border-bottom: none;
+  }
+  .ledger-table tr:hover td {
+    background: rgba(239, 233, 220, 0.02);
+  }
+  .cancel-row-btn {
+    background: transparent;
+    border: 1px solid var(--coral);
+    color: var(--coral);
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .cancel-row-btn:hover {
+    background: var(--coral);
+    color: var(--navy-deep);
+  }
+
+  /* ---------- PROFESSIONAL AUTH MODAL ---------- */
+  .auth-overlay {
+    position: fixed; inset: 0;
+    background: rgba(4, 11, 18, 0.85);
+    backdrop-filter: blur(16px);
+    z-index: 300;
+    display: none; align-items: center; justify-content: center;
+    padding: 24px;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .auth-card {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--gold);
+    border-radius: 8px;
+    width: 100%; max-width: 440px;
+    padding: 42px 36px;
+    box-shadow: 0 40px 90px -15px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    position: relative;
+    transform: translateY(15px);
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes slideUp { to { transform: translateY(0); } }
+
+  .auth-close {
+    position: absolute; top: 20px; right: 20px;
+    background: rgba(239, 233, 220, 0.05);
+    border: 1px solid var(--line);
+    color: var(--foam);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.25s;
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+  .auth-close:hover {
+    background: var(--coral);
+    color: var(--navy-deep);
+    border-color: var(--coral);
+    transform: rotate(90deg);
+  }
+
+  .auth-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .auth-header h3 {
+    font-size: 1.8rem;
+    color: var(--foam);
+    font-weight: 500;
+  }
+  .auth-header p {
+    font-size: 0.85rem;
+    color: rgba(239, 233, 220, 0.6);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .auth-tabs {
+    display: flex;
+    background: rgba(6, 21, 35, 0.6);
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    margin-bottom: 24px;
+  }
+  .auth-tab {
+    flex: 1;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    color: rgba(239, 233, 220, 0.55);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.25s;
+  }
+  .auth-tab.active {
+    background: var(--navy-mid);
+    color: var(--gold-light);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .auth-field {
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .auth-label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-light);
+    margin-bottom: 8px;
+    opacity: 0.85;
+  }
+  .auth-input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(6, 21, 35, 0.5);
+    border: 1px solid var(--line);
+    color: var(--foam);
+    font-family: inherit;
+    font-size: 0.95rem;
+    border-radius: 4px;
+    outline: none;
+    transition: all 0.25s;
+  }
+  .auth-input:focus {
+    border-color: var(--gold);
+    background: rgba(6, 21, 35, 0.8);
+    box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.12);
+  }
+
+  .auth-error {
+    color: var(--coral);
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: shake 0.3s ease;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  .auth-btn {
+    width: 100%;
+    background: var(--coral);
+    color: var(--navy-deep);
+    border: none;
+    font-weight: 700;
+    padding: 15px;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 8px 25px -8px rgba(226,102,60,0.5);
+    transition: all 0.25s;
+    font-family: inherit;
+  }
+  .auth-btn:hover {
+    background: var(--gold-light);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 30px -10px rgba(228,200,119,0.5);
+  }
+
+  .sandbox-banner {
+    margin-top: 26px;
+    padding: 12px 16px;
+    background: rgba(201, 162, 75, 0.05);
+    border: 1px dashed rgba(201, 162, 75, 0.25);
+    border-radius: 4px;
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+  .sandbox-title {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--gold-light);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .sandbox-body {
+    color: rgba(239, 233, 220, 0.65);
+  }
+  .sandbox-body span {
+    color: var(--foam);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .auth-toggle-mode {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 0.78rem;
+    color: rgba(239, 233, 220, 0.6);
+    font-family: inherit;
+  }
+  .auth-toggle-mode span {
+    color: var(--gold-light);
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s;
+  }
+  .auth-toggle-mode span:hover {
+    color: var(--coral);
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer{padding:60px 0 40px; border-top:1px solid var(--line);}
+  .footer-grid{display:flex; justify-content:space-between; flex-wrap:wrap; gap:30px;}
+  .footer-cols{display:flex; gap:70px;}
+  .footer-col h4{font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--gold-light); margin-bottom:14px;}
+  .footer-col a{display:block; font-size:0.88rem; color:rgba(239,233,220,0.7); margin-bottom:10px;}
+  .footer-col a:hover{color:var(--gold-light);}
+  .footer-bottom{margin-top:50px; padding-top:24px; border-top:1px solid var(--line); font-size:0.78rem; color:rgba(239,233,220,0.45); display:flex; justify-content:space-between;}
+
+  /* scroll reveal */
+  .reveal{opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  @media (max-width:980px){
+    .hero-grid{grid-template-columns:1fr;}
+    .ticket-stage{margin-top:40px;}
+    .booking-fields{grid-template-columns:1fr 1fr;}
+    .field{border-right:none; border-bottom:1px solid rgba(8,20,32,0.1);}
+    .search-btn{grid-column:1/-1; padding:16px; justify-content:center; margin-top:6px;}
+    .dest-grid{grid-template-columns:repeat(2,1fr);}
+    .feat-grid{grid-template-columns:repeat(2,1fr);}
+    .nav-links{display:none;}
+    .footer-cols{gap:40px;}
+  }
+  @media (max-width:600px){
+    .dest-grid{grid-template-columns:1fr;}
+    .feat-grid{grid-template-columns:1fr;}
+    .hero-stats{flex-wrap:wrap; row-gap:20px;}
+  }
+</style>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+<header>
+  <nav class="wrap">
+    <div class="brand"><span class="ticket-hole"></span> Voyage Ledger</div>
+    <div class="nav-links">
+      <a href="#booking-section">Domestic</a>
+      <a href="#destinations">International</a>
+      <a href="#how">How it Works</a>
+      <a href="#bookings-section">My Bookings</a>
+      <!-- Active session status indicator -->
+      <span id="nav-user-badge" style="display:none; font-family:'IBM Plex Mono', monospace; font-size:0.72rem; color:var(--gold-light); border:1px solid var(--gold); padding:4px 10px; border-radius:2px; text-transform:uppercase;"></span>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <!-- Toggle Sign In / Log Out dynamic handles -->
+      <button id="nav-auth-btn" class="nav-cta" style="background:transparent; cursor:pointer;">Sign In</button>
+      <a href="#booking-section" class="nav-cta">Book a Ticket</a>
+    </div>
+  </nav>
+</header>
+
+<section class="hero" id="book">
+  <div class="hero-bg">
+    <img src="https://images.unsplash.com/photo-1548574505-5e239809ee19?auto=format&fit=crop&w=1800&q=80" alt="Cruise ship at sea">
+  </div>
+  <svg class="wave-layer wave1" viewBox="0 0 1600 120" preserveAspectRatio="none" style="height:140px;">
+    <path d="M0,60 C200,110 400,10 600,60 C800,110 1000,10 1200,60 C1400,110 1500,40 1600,60 L1600,120 L0,120 Z" fill="#0B2A44"/>
+  </svg>
+  <svg class="wave-layer wave2" viewBox="0 0 1600 120" preserveAspectRatio="none" style="height:100px;">
+    <path d="M0,50 C220,0 420,90 640,40 C860,0 1060,90 1280,40 C1400,10 1500,50 1600,40 L1600,120 L0,120 Z" fill="#061523"/>
+  </svg>
+
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">National &amp; International Sailings</div>
+      <h1>Your next horizon <em>starts</em><br>with one ticket.</h1>
+      <p class="lead">Book cruise tickets across domestic coastal routes and international ports — Mediterranean, Bosphorus, Maldives and beyond — with real-time berths, transparent fares, and instant e-tickets.</p>
+      <div class="hero-actions">
+        <a href="#destinations" class="btn-primary">Explore Routes</a>
+        <a href="#how" class="link-ghost">How booking works →</a>
+      </div>
+      
+      <div class="hero-stats">
+        <div class="mini-sea-lane">
+          <div class="mini-boat">Explicit fleet tracking animation here</div>
+        </div>
+        <span class="mini-sea-lane-label">Voyage Ledger Live Fleet Tracking</span>
+      </div>
+    </div>
+
+    <div class="ticket-stage">
+      <div class="ticket" id="ticket3d">
+        <div class="ticket-top">
+          <div class="ticket-brand">
+            <div class="name">Voyage Ledger</div>
+            <div class="class">DECK · BALCONY</div>
+          </div>
+          <div class="ticket-route">
+            <div class="port"><div class="code">MUM</div><div class="city">Mumbai</div></div>
+            <div class="path"></div>
+            <div class="port"><div class="code">IST</div><div class="city">Istanbul</div></div>
+          </div>
+        </div>
+        <div class="ticket-bottom">
+          <div class="ticket-field"><div class="k">Passenger</div><div class="v">A. SHARMA</div></div>
+          <div class="ticket-field"><div class="k">Departs</div><div class="v">14 OCT 26 · 18:30</div></div>
+          <div class="ticket-field"><div class="k">Cabin</div><div class="v">7042-B</div></div>
+          <div class="ticket-field"><div class="k">Fare</div><div class="v">₹64,500</div></div>
+          <div class="ticket-barcode"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="booking wrap" id="booking-section">
+  <div class="booking-card reveal">
+    <div class="trip-toggle">
+      <button class="active" data-trip="domestic">Domestic</button>
+      <button data-trip="international">International</button>
+    </div>
+    <div class="booking-fields">
+      <div class="field">
+        <div class="k">From</div>
+        <select id="fromPort"><option>Mumbai</option><option>Kochi</option><option>Chennai</option><option>Goa</option></select>
+      </div>
+      <div class="field">
+        <div class="k">To</div>
+        <select id="toPort"><option>Goa</option><option>Lakshadweep</option><option>Kochi</option></select>
+      </div>
+      <div class="field">
+        <div class="k">Departure</div>
+        <input type="date" value="2026-10-14">
+      </div>
+      <div class="field">
+        <div class="k">Passengers</div>
+        <select><option>2 Adults</option><option>1 Adult</option><option>2 Adults, 1 Child</option><option>4 Adults</option></select>
+      </div>
+      <button class="search-btn" id="search-sailings-btn">Search Sailings</button>
+    </div>
+  </div>
+</div>
+
+<section class="route-strip">
+  <div class="wrap section-head reveal">
+    <div class="eyebrow">Coverage</div>
+    <h2>Every coastline, one boarding pass.</h2>
+    <p>From short domestic getaways along the Konkan coast to long-haul international liners, your ticket carries the same fare transparency and support desk.</p>
+  </div>
+  <div class="wrap route-line-wrap reveal">
+    <svg class="route-svg" viewBox="0 0 1230 120" preserveAspectRatio="none">
+      <path d="M 20 60 C 260 10, 520 110, 780 50 S 1180 60, 1210 60" fill="none" stroke="rgba(239,233,220,0.25)" stroke-width="1.5" stroke-dasharray="2 10" stroke-linecap="round"/>
+      <circle cx="20" cy="60" r="5" fill="#C9A24B"/>
+      <circle cx="780" cy="50" r="4" fill="#EFE9DC" opacity="0.6"/>
+      <circle cx="1210" cy="60" r="5" fill="#E2663C"/>
+      <text x="8" y="90" fill="#9fd7c7" font-family="IBM Plex Mono" font-size="12">MUMBAI</text>
+      <text x="750" y="30" fill="#EFE9DC" opacity="0.6" font-family="IBM Plex Mono" font-size="12">DUBAI</text>
+      <text x="1150" y="90" fill="#E4C877" font-family="IBM Plex Mono" font-size="12">ISTANBUL</text>
+    </svg>
+    <div class="route-ship" style="position:absolute; top:-12px; left:0; font-size:38px; transform:translate(-50%, -50%);">🚢</div>
+  </div>
+</section>
+
+<section id="destinations">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Popular Routes</div>
+      <h2>Domestic escapes, international liners.</h2>
+      <p>Every listing below is a real bookable route class — pick a card to see live sailings, cabin classes and fares.</p>
+    </div>
+
+    <div class="dest-grid">
+      <div class="dest-card reveal" data-trip="domestic" data-from="Mumbai" data-to="Goa">
+        <div class="tilt">
+          <img src="https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=900&q=80" alt="Goa beach sunset coastal run">
+          <div class="shade"></div>
+        </div>
+        <div class="dest-tag dom">Domestic</div>
+        <div class="dest-info">
+          <h3>Mumbai → Goa Coastal Run</h3>
+          <div class="meta"><span>2 Nights · Konkan Coast</span><span class="price">from ₹9,200</span></div>
+        </div>
+      </div>
+
+      <div class="dest-card reveal" data-trip="international" data-from="Mumbai" data-to="Malta">
+        <div class="tilt">
+          <img src="https://images.unsplash.com/photo-1527004013197-933c4bb611b3?auto=format&fit=crop&w=900&q=80" alt="Cruise ship at Grand Harbour, Malta">
+          <div class="shade"></div>
+        </div>
+        <div class="dest-tag intl">International</div>
+        <div class="dest-info">
+          <h3>Grand Harbour, Malta</h3>
+          <div class="meta"><span>7 Nights · Mediterranean</span><span class="price">from ₹58,900</span></div>
+        </div>
+      </div>
+
+      <div class="dest-card reveal" data-trip="international" data-from="Kochi" data-to="Istanbul">
+        <div class="tilt">
+          <img src="https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=900&q=80" alt="Istanbul port">
+          <div class="shade"></div>
+        </div>
+        <div class="dest-tag intl">International</div>
+        <div class="dest-info">
+          <h3>Bosphorus Nights, Istanbul</h3>
+          <div class="meta"><span>6 Nights · Aegean Route</span><span class="price">from ₹52,300</span></div>
+        </div>
+      </div>
+
+      <div class="dest-card reveal" data-trip="international" data-from="Chennai" data-to="Marseille">
+        <div class="tilt">
+          <img src="https://images.unsplash.com/photo-1568849676085-51415703900f?auto=format&fit=crop&w=900&q=80" alt="Cruise boat in Marseille port">
+          <div class="shade"></div>
+        </div>
+        <div class="dest-tag intl">International</div>
+        <div class="dest-info">
+          <h3>French Riviera, Marseille</h3>
+          <div class="meta"><span>8 Nights · Western Med</span><span class="price">from ₹64,750</span></div>
+        </div>
+      </div>
+
+      <div class="dest-card reveal" data-trip="international" data-from="Mumbai" data-to="Maldives">
+        <div class="tilt">
+          <img src="https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=900&q=80" alt="Maldives beach">
+          <div class="shade"></div>
+        </div>
+        <div class="dest-tag intl">International</div>
+        <div class="dest-info">
+          <h3>Maldives Atoll Explorer</h3>
+          <div class="meta"><span>4 Nights · Indian Ocean</span><span class="price">from ₹41,000</span></div>
+        </div>
+      </div>
+
+      <div class="dest-card reveal" data-trip="international" data-from="Chennai" data-to="Whitsundays">
+        <div class="tilt">
+          <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80" alt="Whitehaven Beach, Whitsunday Islands">
+          <div class="shade"></div>
+        </div>
+        <div class="dest-tag intl">International</div>
+        <div class="dest-info">
+          <h3>Whitsundays, Australia</h3>
+          <div class="meta"><span>10 Nights · South Pacific</span><span class="price">from ₹92,400</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Why Voyage Ledger</div>
+      <h2>Booking a berth, simplified.</h2>
+    </div>
+  </div>
+  <div class="feat-grid">
+    <div class="feat reveal"><div class="idx">01</div><h3>Live berth availability</h3><p>See real cabin inventory across classes instead of guessing — no overbooked surprises at the gangway.</p></div>
+    <div class="feat reveal"><div class="idx">02</div><h3>One fare, no fine print</h3><p>Port fees, taxes and onboard credit are shown upfront on every ticket before you pay.</p></div>
+    <div class="feat reveal"><div class="idx">03</div><h3>Domestic + international</h3><p>Switch between coastal getaways and long-haul international liners from a single account.</p></div>
+    <div class="feat reveal"><div class="idx">04</div><h3>Instant e-ticket</h3><p>Your boarding pass is issued the moment payment clears — no waiting on confirmation emails.</p></div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="wrap reveal">
+    <h2>Pick a port. We'll handle the paperwork.</h2>
+    <p>Compare domestic and international sailings side by side, then lock in your cabin in under three minutes.</p>
+    <a href="#booking-section" class="btn-primary">Start Booking</a>
+  </div>
+</section>
+
+<!-- Database Ledger Section for Collecting Booked Tickets -->
+<section id="bookings-section" class="wrap" style="padding: 100px 0; border-top: 1px solid var(--line);">
+  <div class="section-head reveal">
+    <div class="eyebrow">Database Ledger</div>
+    <h2 id="ledger-headline">Your Booked Tickets</h2>
+    <p id="ledger-subtext">All active berths, transaction details, and verified e-tickets generated through the local storage database.</p>
+  </div>
+
+  <!-- Admin Dashboard Metrics Panel (Only visible to admin) -->
+  <div id="admin-dashboard-panel" style="display:none; margin-bottom: 34px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px;">
+      <div style="background: var(--navy); border: 1px solid var(--line); padding: 22px; border-radius: var(--radius);">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-transform: uppercase; color: var(--gold-light); opacity: 0.8;">Total Volume Booked</div>
+        <div id="admin-stat-revenue" style="font-family: 'Fraunces', serif; font-size: 1.85rem; font-weight: 600; margin-top: 8px; color: var(--foam);">₹0</div>
+      </div>
+      <div style="background: var(--navy); border: 1px solid var(--line); padding: 22px; border-radius: var(--radius);">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-transform: uppercase; color: var(--gold-light); opacity: 0.8;">Active Ledger Entries</div>
+        <div id="admin-stat-berths" style="font-family: 'Fraunces', serif; font-size: 1.85rem; font-weight: 600; margin-top: 8px; color: var(--foam);">0</div>
+      </div>
+      <div style="background: var(--navy); border: 1px solid var(--line); padding: 22px; border-radius: var(--radius);">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-transform: uppercase; color: var(--gold-light); opacity: 0.8;">Database Status</div>
+        <div style="font-family: 'Fraunces', serif; font-size: 1.85rem; font-weight: 600; margin-top: 8px; color: #9fd7c7;">ONLINE</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bookings-list">
+    <!-- Tickets render dynamically here in lines as a table -->
+  </div>
+</section>
+
+<!-- Interactive Transaction confirmation Modal -->
+<div id="bookingModal" style="display:none; position:fixed; inset:0; background:rgba(6,21,35,0.85); backdrop-filter:blur(8px); z-index:200; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:var(--navy); border:1px solid var(--line); padding:40px 30px; border-radius:6px; max-width:450px; width:100%; position:relative;">
+    <button id="closeModal" style="position:absolute; top:20px; right:20px; background:none; border:none; color:var(--foam); font-size:1.5rem; cursor:pointer;">&times;</button>
+    <h3 style="font-size:1.6rem; margin-bottom:8px; color:var(--gold-light); font-family:'Fraunces', serif;">Confirm Your Berth</h3>
+    <p style="font-size:0.9rem; opacity:0.8; margin-bottom:24px;">Enter traveler details to commit transaction to the local ticket database.</p>
+    <form id="modalForm" style="display:flex; flex-direction:column; gap:18px;">
+      <div>
+        <label style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; opacity:0.7; margin-bottom:6px; font-family:'IBM Plex Mono', monospace;">Passenger Name</label>
+        <input type="text" id="passName" placeholder="E.g., A. SHARMA" required style="width:100%; padding:12px; background:var(--navy-deep); border:1px solid var(--line); color:var(--foam); border-radius:2px; font-family:inherit; outline:none;">
+      </div>
+      <div>
+        <label style="display:block; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; opacity:0.7; margin-bottom:6px; font-family:'IBM Plex Mono', monospace;">Cabin Class</label>
+        <select id="cabinClass" style="width:100%; padding:12px; background:var(--navy-deep); border:1px solid var(--line); color:var(--foam); border-radius:2px; font-family:inherit; outline:none; -webkit-appearance: none; appearance: none;">
+          <option value="DECK · BALCONY">Deck · Balcony Suite</option>
+          <option value="OCEANVIEW">Oceanview Standard</option>
+          <option value="CHAIRMAN SUITE">Chairman Luxury Suite</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-primary" style="border:none; cursor:pointer; width:100%; text-align:center; padding:15px;">Confirm &amp; Commit Booking</button>
+    </form>
+  </div>
+</div>
+
+<!-- Unified Authentication Modal (Admin Panel & Client Logins) -->
+<div id="authModal" class="auth-overlay">
+  <div class="auth-card">
+    <button id="closeAuthModal" class="auth-close" aria-label="Close dialog">&times;</button>
+    
+    <div class="auth-header">
+      <!-- Decorative Compass Icon -->
+      <svg style="width: 42px; height: 42px; margin: 0 auto 16px; display: block; fill: var(--gold-light);" viewBox="0 0 24 24">
+        <path d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm1,17.93V17a1,1,0,0,0-2,0v2.93a8,8,0,0,1-5.93-5.93H7a1,1,0,0,0,0-2H5.07a8,8,0,0,1,5.93-5.93V7a1,1,0,0,0,2,0V4.07a8,8,0,0,1,5.93,5.93H17a1,1,0,0,0,0,2h1.93A8,8,0,0,1,13,19.93ZM12,9a3,3,0,1,0,3,3A3,3,0,0,0,12,9Zm0,4a1,1,0,1,1,1-1A1,1,0,0,1,12,13Z"/>
+      </svg>
+      <h3 id="authModalTitle">Sign In</h3>
+      <p id="authModalDescription">Access the secure Voyage Ledger ticketing core terminal.</p>
+    </div>
+    
+    <div class="auth-tabs">
+      <button id="auth-tab-client" class="auth-tab active">Client Login</button>
+      <button id="auth-tab-admin" class="auth-tab">Admin Portal</button>
+    </div>
+
+    <form id="authForm">
+      <div class="auth-field">
+        <label class="auth-label" for="authUsername">Username</label>
+        <input type="text" id="authUsername" class="auth-input" placeholder="Enter username" required autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label" for="authPassword">Password</label>
+        <input type="password" id="authPassword" class="auth-input" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <div id="authErrorMsg" class="auth-error" style="display:none;">
+        <svg style="width: 14px; height: 14px; fill: currentColor; display: inline-block;" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+        </svg>
+        <span id="authErrorText">Invalid security credentials. Please retry.</span>
+      </div>
+      <!-- Submit Button ID configured for dynamic text assignment -->
+      <button type="submit" id="auth-submit-btn" class="auth-btn">Login</button>
+    </form>
+
+    <!-- Professional Mode Toggle Link (Login / Registration) -->
+    <div class="auth-toggle-mode">
+      <span class="auth-toggle-mode-text">Don't have an account? </span>
+      <span id="auth-toggle-action">Register Client</span>
+    </div>
+
+    <div class="sandbox-banner">
+      <div class="sandbox-title">
+        <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+        Sandbox Defaults
+      </div>
+      <div class="sandbox-body">
+        Use <span onclick="fillDemo('client')">client / client123</span> or <span onclick="fillDemo('admin')">admin / admin123</span>. You can also register custom accounts.
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap footer-grid">
+    <div class="brand"><span class="ticket-hole"></span> Voyage Ledger</div>
+    <div class="footer-cols">
+      <div class="footer-col">
+        <h4>Routes</h4>
+        <a href="#">Domestic Coastal</a>
+        <a href="#">Mediterranean</a>
+        <a href="#">Indian Ocean</a>
+        <a href="#">South Pacific</a>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <a href="#">Manage Booking</a>
+        <a href="#">Cancellation Policy</a>
+        <a href="#">Help Desk</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About</a>
+        <a href="#">Careers</a>
+        <a href="#">Press</a>
+      </div>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <span>&copy; 2026 Voyage Ledger. All fares in INR unless noted.</span>
+    <span class="mono">DEMO INTERFACE</span>
+  </div>
+</footer>
+
+<script>
+  // Point this at wherever api.php is deployed. If index.html and api.php
+  // live in the same folder on the same domain, the relative path just works.
+  const API_BASE = 'api.php';
+
+  // Global Session Manager State
+  let currentSession = JSON.parse(localStorage.getItem('voyage_session')) || {
+    loggedIn: false,
+    role: null, // 'client' or 'admin'
+    username: null
+  };
+
+  // Global arrays of destinations matching trip type toggles
+  const routes = {
+    domestic: {
+      from: ['Mumbai', 'Kochi', 'Chennai', 'Goa'],
+      to: ['Goa', 'Lakshadweep', 'Kochi']
+    },
+    international: {
+      from: ['Mumbai', 'Chennai', 'Kochi'],
+      to: ['Malta', 'Istanbul', 'Marseille', 'Maldives', 'Whitsundays']
+    }
+  };
+
+  // 3D ticket tilt on mouse move
+  const ticket = document.getElementById('ticket3d');
+  const stage = document.querySelector('.ticket-stage');
+  stage.addEventListener('mousemove', (e)=>{
+    const r = stage.getBoundingClientRect();
+    const px = (e.clientX - r.left)/r.width - 0.5;
+    const py = (e.clientY - r.top)/r.height - 0.5;
+    ticket.style.transform = `rotateX(${8 - py*22}deg) rotateY(${-14 + px*26}deg)`;
+    ticket.style.animation = 'none';
+  });
+  stage.addEventListener('mouseleave', ()=>{
+    ticket.style.animation = 'ticket-idle 6s ease-in-out infinite';
+    ticket.style.transform = 'rotateX(8deg) rotateY(-14deg)';
+  });
+
+  // TOUCH/CLICK TICKET TO OPEN THE TICKETS FOR BOOKING
+  ticket.addEventListener('click', () => {
+    const target = document.getElementById('booking-section');
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    setTimeout(() => {
+      document.getElementById('fromPort').focus();
+    }, 800);
+  });
+
+  // trip toggle swaps destination options
+  const toggleBtns = document.querySelectorAll('.trip-toggle button');
+  const fromSelect = document.getElementById('fromPort');
+  const toPort = document.getElementById('toPort');
+  
+  toggleBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      toggleBtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const type = btn.dataset.trip;
+      
+      // Populate From Options
+      fromSelect.innerHTML = routes[type].from.map(f=>`<option value="${f}">${f}</option>`).join('');
+
+      // Populate To Options
+      toPort.innerHTML = routes[type].to.map(o=>`<option value="${o}">${o}</option>`).join('');
+    });
+  });
+
+  // Dynamic automatic selection when clicking destination card photos
+  const destCards = document.querySelectorAll('.dest-card');
+  destCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const tripType = card.getAttribute('data-trip');
+      const fromVal = card.getAttribute('data-from');
+      const toVal = card.getAttribute('data-to');
+
+      // Update toggle selection
+      toggleBtns.forEach(b => {
+        if (b.getAttribute('data-trip') === tripType) {
+          b.click();
+        }
+      });
+
+      // Update drop-down select option targets
+      fromSelect.value = fromVal;
+      toPort.value = toVal;
+
+      // Smoothly scroll down to the booking search section
+      document.getElementById('booking-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
+
+  // scroll reveal
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
+  }, {threshold:0.15});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  // --- LIVE FLEET TRACKING ANIMATION ---
+  const miniBoat = document.querySelector('.mini-boat');
+  const trackingLabel = document.querySelector('.mini-sea-lane-label');
+  
+  if (miniBoat && trackingLabel) {
+    // Style the placeholder text safely inside the CSS keyframe lane
+    miniBoat.innerHTML = `<span class="boat-icon" style="display:inline-block; margin-right:4px;">🚢</span> <span class="boat-text" style="font-size:0.68rem; font-family:'IBM Plex Mono', monospace; color:var(--gold-light); vertical-align:middle; letter-spacing:0.05em;">VL-302 Eastbound →</span>`;
+    
+    // Interval loop checking current scale matrix state to match telemetry data directionally
+    setInterval(() => {
+      const textNode = miniBoat.querySelector('.boat-text');
+      const computedStyle = window.getComputedStyle(miniBoat);
+      const matrix = new WebKitCSSMatrix(computedStyle.transform);
+      
+      // Match textual arrow state to CSS keyframe transform loop direction
+      if (matrix.a < 0) {
+        textNode.textContent = "← VL-302 Westbound";
+        trackingLabel.textContent = "Voyage Ledger Live Fleet Tracking • Terminal Connection Stable";
+      } else {
+        textNode.textContent = "VL-302 Eastbound →";
+        trackingLabel.textContent = "Voyage Ledger Live Fleet Tracking • Updating AIS Ping...";
+      }
+    }, 500);
+  }
+
+  // ==================================================
+  // SYSTEM USER PORTALS & AUTH SYSTEM IMPLEMENTATION
+  // ==================================================
+  const navAuthBtn = document.getElementById('nav-auth-btn');
+  const navUserBadge = document.getElementById('nav-user-badge');
+  const authModal = document.getElementById('authModal');
+  const closeAuthModal = document.getElementById('closeAuthModal');
+  const authTabClient = document.getElementById('auth-tab-client');
+  const authTabAdmin = document.getElementById('auth-tab-admin');
+  const authForm = document.getElementById('authForm');
+  const authUsernameInput = document.getElementById('authUsername');
+  const authPasswordInput = document.getElementById('authPassword');
+  const authErrorMsg = document.getElementById('authErrorMsg');
+  const authErrorText = document.getElementById('authErrorText');
+  const authSubmitBtn = document.getElementById('auth-submit-btn');
+  const authToggleAction = document.getElementById('auth-toggle-action');
+  const authToggleModeText = document.querySelector('.auth-toggle-mode-text');
+
+  let activeAuthTab = 'client'; // Current modal flow setting ('client' or 'admin')
+  let authMode = 'login';       // State ('login' or 'register')
+
+  // Redraw modal header descriptions and buttons dynamically
+  function updateAuthModalUI() {
+    const authModalTitle = document.getElementById('authModalTitle');
+    const authModalDescription = document.getElementById('authModalDescription');
+
+    if (authMode === 'login') {
+      authModalTitle.textContent = 'Sign In';
+      authModalDescription.textContent = 'Access the secure Voyage Ledger ticketing core terminal.';
+      authToggleModeText.textContent = "Don't have an account? ";
+      authToggleAction.textContent = activeAuthTab === 'client' ? 'Register Client' : 'Register Admin';
+      authSubmitBtn.textContent = activeAuthTab === 'client' ? 'Login' : 'Leader Login';
+    } else {
+      authModalTitle.textContent = activeAuthTab === 'client' ? 'Register Client' : 'Register Admin';
+      authModalDescription.textContent = 'Configure your custom username and password parameters.';
+      authToggleModeText.textContent = 'Already have an account? ';
+      authToggleAction.textContent = 'Sign In';
+      authSubmitBtn.textContent = activeAuthTab === 'client' ? 'Create Client Account' : 'Create Admin Account';
+    }
+  }
+
+  // Toggle Mode Trigger click handler
+  authToggleAction.addEventListener('click', () => {
+    authMode = authMode === 'login' ? 'register' : 'login';
+    authErrorMsg.style.display = 'none';
+    updateAuthModalUI();
+  });
+
+  // Toggle visual status of headers and UI interfaces based on session role
+  function applyPortalSessionState() {
+    if (currentSession.loggedIn) {
+      navAuthBtn.textContent = 'Sign Out';
+      navUserBadge.style.display = 'inline-block';
+      navUserBadge.textContent = `${currentSession.role}: ${currentSession.username}`;
+      
+      // Populate standard passenger form fields if client is active
+      if (currentSession.role === 'client') {
+        document.getElementById('passName').value = currentSession.username.toUpperCase();
+      } else {
+        document.getElementById('passName').value = '';
+      }
+    } else {
+      navAuthBtn.textContent = 'Sign In';
+      navUserBadge.style.display = 'none';
+      document.getElementById('passName').value = '';
+    }
+    renderBookings();
+  }
+
+  // Handle click on top menu Sign In / Log Out action
+  navAuthBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (currentSession.loggedIn) {
+      // Execute Sign Out
+      currentSession = { loggedIn: false, role: null, username: null };
+      localStorage.setItem('voyage_session', JSON.stringify(currentSession));
+      applyPortalSessionState();
+    } else {
+      // Launch Sign In Modal
+      authErrorMsg.style.display = 'none';
+      authForm.reset();
+      authMode = 'login';
+      activeAuthTab = 'client';
+      authTabClient.classList.add('active');
+      authTabAdmin.classList.remove('active');
+      updateAuthModalUI();
+      authModal.style.display = 'flex';
+    }
+  });
+
+  closeAuthModal.addEventListener('click', () => {
+    authModal.style.display = 'none';
+  });
+
+  // Switch tabs inside Auth Modal (Handles button text updates dynamically)
+  authTabClient.addEventListener('click', () => {
+    activeAuthTab = 'client';
+    authTabClient.classList.add('active');
+    authTabAdmin.classList.remove('active');
+    authErrorMsg.style.display = 'none';
+    updateAuthModalUI();
+  });
+
+  authTabAdmin.addEventListener('click', () => {
+    activeAuthTab = 'admin';
+    authTabAdmin.classList.add('active');
+    authTabClient.classList.remove('active');
+    authErrorMsg.style.display = 'none';
+    updateAuthModalUI();
+  });
+
+  // Helper utility to instantly autofill and align tabs during trial
+  function fillDemo(role) {
+    authMode = 'login';
+    if (role === 'client') {
+      authTabClient.click();
+      authUsernameInput.value = 'client@example.com';
+      authPasswordInput.value = 'client123';
+    } else {
+      authTabAdmin.click();
+      authUsernameInput.value = 'shyam@gmail.com';
+      authPasswordInput.value = 'ChangeMe123!';
+    }
+    authErrorMsg.style.display = 'none';
+  }
+
+  function showAuthError(message) {
+    authErrorText.textContent = message;
+    authErrorMsg.style.display = 'none';
+    void authErrorMsg.offsetWidth; // Trigger DOM reflow
+    authErrorMsg.style.display = 'flex';
+  }
+
+  // Handle Authentication submission logic — both "login" and "register"
+  // modes hit the same /login endpoint: the backend auto-creates a client
+  // account the first time it sees a new email, and rejects unknown admins.
+  authForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const inputUser = authUsernameInput.value.trim();
+    const inputPass = authPasswordInput.value;
+
+    authSubmitBtn.disabled = true;
+    const originalLabel = authSubmitBtn.textContent;
+    authSubmitBtn.textContent = 'Please wait…';
+
+    try {
+      const res = await fetch(`${API_BASE}?action=login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inputUser, password: inputPass, role: activeAuthTab })
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        currentSession = {
+          loggedIn: true,
+          role: data.user.role,
+          username: data.user.username
+        };
+        localStorage.setItem('voyage_session', JSON.stringify(currentSession));
+        authModal.style.display = 'none';
+        applyPortalSessionState();
+      } else {
+        showAuthError(data.error || 'Invalid credentials for this workspace profile.');
+      }
+    } catch (err) {
+      showAuthError('Could not reach the server. Check your connection and try again.');
+    } finally {
+      authSubmitBtn.disabled = false;
+      authSubmitBtn.textContent = originalLabel;
+    }
+  });
+
+  // Dismiss authentication dialog upon outside background clicks
+  window.addEventListener('click', (e) => {
+    if (e.target === authModal) {
+      authModal.style.display = 'none';
+    }
+  });
+
+  // ==========================================
+  // LOCAL DATABASE (LOCALSTORAGE) RESERVATIONS
+  // ==========================================
+  const searchBtn = document.getElementById('search-sailings-btn');
+  const modal = document.getElementById('bookingModal');
+  const closeModal = document.getElementById('closeModal');
+  const modalForm = document.getElementById('modalForm');
+
+  // Trigger Confirmation Modal on "Search Sailings" click
+  searchBtn.addEventListener('click', () => {
+    // Force active login check before allowing berth reservation
+    if (!currentSession.loggedIn) {
+      authErrorMsg.style.display = 'none';
+      authForm.reset();
+      authMode = 'login';
+      updateAuthModalUI();
+      authModal.style.display = 'flex';
+      return;
+    }
+    modal.style.display = 'flex';
+  });
+
+  closeModal.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+
+  // Close modal when clicking outside form container
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+
+  // Handle transaction confirmation: open a Razorpay order for the real
+  // fare, launch Checkout, and only write the booking once payment clears.
+  modalForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const passengerName = document.getElementById('passName').value.trim().toUpperCase();
+    const cabin = document.getElementById('cabinClass').value;
+    const fromVal = fromSelect.value;
+    const toVal = toPort.value;
+    const dateVal = document.querySelector('.booking-fields input[type="date"]').value;
+    const tripType = document.querySelector('.trip-toggle button.active').getAttribute('data-trip');
+
+    const modalSubmitBtn = modalForm.querySelector('button[type="submit"]');
+    const originalBtnLabel = modalSubmitBtn ? modalSubmitBtn.textContent : '';
+    if (modalSubmitBtn) { modalSubmitBtn.disabled = true; modalSubmitBtn.textContent = 'Preparing payment…'; }
+
+    try {
+      // Step 1: ask the server to price the trip and open a Razorpay order.
+      const orderRes = await fetch(`${API_BASE}?action=create_order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          passenger: passengerName,
+          bookedBy: currentSession.username,
+          cabinClass: cabin,
+          from: fromVal,
+          to: toVal,
+          date: dateVal,
+          tripType: tripType
+        })
+      });
+      const orderData = await orderRes.json();
+      if (!orderRes.ok || !orderData.success) {
+        throw new Error(orderData.error || 'Could not start payment.');
+      }
+
+      // Step 2: launch Razorpay Checkout with that order.
+      const rzp = new Razorpay({
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Voyage Ledger',
+        description: `${fromVal} → ${toVal} · ${cabin}`,
+        order_id: orderData.orderId,
+        prefill: { name: passengerName, email: currentSession.username },
+        theme: { color: '#0B2A44' },
+        handler: async function (response) {
+          // Step 3: server verifies the signature and creates the booking.
+          try {
+            const verifyRes = await fetch(`${API_BASE}?action=verify_payment`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+            const verifyData = await verifyRes.json();
+            if (!verifyRes.ok || !verifyData.success) {
+              throw new Error(verifyData.error || 'Payment could not be verified.');
+            }
+
+            modal.style.display = 'none';
+            await renderBookings();
+            document.getElementById('bookings-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } catch (err) {
+            alert(`Payment succeeded but the booking could not be confirmed: ${err.message}\nContact support with payment ID ${response.razorpay_payment_id}.`);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            if (modalSubmitBtn) { modalSubmitBtn.disabled = false; modalSubmitBtn.textContent = originalBtnLabel; }
+          }
+        }
+      });
+      rzp.on('payment.failed', function (resp) {
+        fetch(`${API_BASE}?action=record_payment_failure`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ razorpay_order_id: orderData.orderId })
+        }).catch(() => {}); // best-effort audit log, never blocks the user
+        alert(`Payment failed: ${resp.error.description}`);
+      });
+      rzp.open();
+    } catch (err) {
+      alert(err.message || 'Something went wrong starting the payment.');
+    } finally {
+      if (modalSubmitBtn) { modalSubmitBtn.disabled = false; modalSubmitBtn.textContent = originalBtnLabel; }
+    }
+  });
+
+  // Render tickets dynamically from the database based on authentication states
+  async function renderBookings() {
+    const listContainer = document.getElementById('bookings-list');
+    const adminPanel = document.getElementById('admin-dashboard-panel');
+    const headline = document.getElementById('ledger-headline');
+    const subtext = document.getElementById('ledger-subtext');
+
+    let allBookings = [];
+    if (currentSession.loggedIn) {
+      try {
+        const res = await fetch(`${API_BASE}?action=get_bookings&username=${encodeURIComponent(currentSession.username)}&role=${encodeURIComponent(currentSession.role)}`);
+        allBookings = await res.json();
+        if (!Array.isArray(allBookings)) allBookings = [];
+        // Normalize server field names (from_port/to_port/etc.) to what renderTable expects.
+        allBookings = allBookings.map(b => ({
+          id: b.id,
+          passenger: b.passenger,
+          bookedBy: b.booked_by,
+          cabin: b.cabin,
+          cabinClass: b.cabin_class,
+          from: b.from_port,
+          codeFrom: b.code_from,
+          to: b.to_port,
+          codeTo: b.code_to,
+          date: b.departure_date,
+          fare: b.fare,
+          tripType: b.trip_type
+        }));
+      } catch (err) {
+        listContainer.innerHTML = `<div class="no-bookings col-span-full" style="width:100%; text-align:center; opacity:0.7; padding:30px;">Could not load bookings from the server. Please refresh.</div>`;
+        return;
+      }
+    }
+
+    // Guest Screen
+    if (!currentSession.loggedIn) {
+      adminPanel.style.display = 'none';
+      headline.textContent = 'Your Booked Tickets';
+      subtext.textContent = 'All active berths, transaction details, and verified e-tickets generated through the local storage database.';
+      listContainer.innerHTML = `
+        <div class="no-bookings col-span-full" style="width: 100%; border: 1px dashed var(--line); padding: 50px 40px; text-align: center; border-radius: var(--radius); opacity: 0.85;">
+          <p style="font-family:'Fraunces', serif; font-size:1.45rem; color: var(--gold-light);">Ledger Access Restricted</p>
+          <p style="font-size:0.88rem; opacity:0.85; margin-top:10px; max-width: 480px; margin-left: auto; margin-right: auto; line-height:1.6;">
+            Please sign in as a Client or Admin to access the database ledger system, view active reservation listings, or cancel berths.
+          </p>
+          <button onclick="document.getElementById('nav-auth-btn').click();" class="btn-primary" style="margin-top: 18px; border: none; cursor:pointer;">Sign In Now</button>
+        </div>
+      `;
+      return;
+    }
+
+    // Admin Session View Panel logic
+    if (currentSession.role === 'admin') {
+      adminPanel.style.display = 'block';
+      headline.textContent = 'Master Database Ledger (Admin)';
+      subtext.textContent = 'You are currently logged in with supreme administrative clearance. Real-time metrics and system cancellation handles are fully active.';
+
+      // Calculate master administrative dashboard metrics
+      let totalSum = 0;
+      allBookings.forEach(b => {
+        const parsedAmount = parseInt(b.fare.replace(/[^\d]/g, ''), 10) || 0;
+        totalSum += parsedAmount;
+      });
+      document.getElementById('admin-stat-revenue').textContent = "₹" + new Intl.NumberFormat('en-IN').format(totalSum);
+      document.getElementById('admin-stat-berths').textContent = allBookings.length;
+
+      renderTable(allBookings, listContainer);
+    } 
+    // Client Session View Panel logic
+    else if (currentSession.role === 'client') {
+      adminPanel.style.display = 'none';
+      headline.textContent = `Client Portal: ${currentSession.username.toUpperCase()}`;
+      subtext.textContent = 'Viewing verified active bookings connected to your user account profile.';
+
+      // Filter reservations specifically matching client's username
+      const clientBookings = allBookings.filter(b => b.bookedBy === currentSession.username || b.passenger === currentSession.username.toUpperCase());
+      renderTable(clientBookings, listContainer);
+    }
+  }
+
+  // Build the responsive database tabular layout
+  function renderTable(bookings, container) {
+    if (bookings.length === 0) {
+      container.innerHTML = `
+        <div class="no-bookings col-span-full" style="width: 100%; border: 1px dashed var(--line); padding: 40px; text-align: center; border-radius: var(--radius); opacity: 0.6;">
+          <p style="font-family:'Fraunces', serif; font-size:1.25rem;">No active berths issued</p>
+          <p style="font-size:0.85rem; opacity:0.8; margin-top:6px;">Submit your voyage parameters above to generate tickets in the ledger database.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let tableHtml = `
+      <div class="ledger-table-wrap">
+        <table class="ledger-table">
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>Passenger</th>
+              <th>Route</th>
+              <th>Departure Date</th>
+              <th>Cabin &amp; Class</th>
+              <th>Fare</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    bookings.forEach(ticket => {
+      const cleanClass = ticket.cabinClass.replace(' · ', ' ');
+      tableHtml += `
+        <tr>
+          <td class="mono" style="color: var(--gold-light);">${ticket.id}</td>
+          <td style="font-weight: 600;">${ticket.passenger}</td>
+          <td>
+            <span class="mono">${ticket.codeFrom}</span> &rarr; <span class="mono">${ticket.codeTo}</span>
+            <span style="font-size: 0.72rem; opacity: 0.6; display: block; margin-top: 2px;">${ticket.from} to ${ticket.to}</span>
+          </td>
+          <td>${ticket.date}</td>
+          <td>
+            <span class="mono">${ticket.cabin}</span>
+            <span style="font-size: 0.72rem; opacity: 0.6; display: block; margin-top: 2px;">${cleanClass}</span>
+          </td>
+          <td class="mono" style="font-weight: 600;">${ticket.fare}</td>
+          <td>
+            <button class="cancel-row-btn" onclick="cancelTicket('${ticket.id}')">Cancel Berth</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    tableHtml += `
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    container.innerHTML = tableHtml;
+  }
+
+  // Delete transaction record from the database
+  async function cancelTicket(id) {
+    if (!confirm('Cancel this berth? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`${API_BASE}?action=cancel_booking&id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Cancellation failed.');
+      await renderBookings();
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  // Load database records and active session states on startup
+  document.addEventListener("DOMContentLoaded", () => {
+    applyPortalSessionState();
+  });
+</script>
+
+</body>
+</html>
